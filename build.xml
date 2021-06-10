@@ -1,0 +1,210 @@
+<!-- Build NormalConjugate. It is also used by Hudson NormalConjugate project. JUnit test is available for this build. -->
+<project basedir="." default="addon" name="BUILD_NormalConjugate">
+    <description>
+        Build NormalConjugate.
+        Also used by Hudson NormalConjugate project.
+        JUnit test is available for this build.
+        $Id: build_NormalConjugate.xml $
+    </description>
+
+    <!-- set global properties for this build -->
+    <property name="srcNormalConjugate" location="src" />
+    <property name="buildNormalConjugate" location="build" />
+    <property name="libNormalConjugate" location="lib" />
+    <property name="release_dir" value="release" />
+    <property name="distNormalConjugate" location="${buildNormalConjugate}/dist" />
+    <property name="beast2path" location="../beast2" />
+    <property name="libBeast2" location="${beast2path}/lib" />
+    <property name="srcBeast2" location="${beast2path}/src" />
+    <property name="beast2classpath" location="${beast2path}/build" />
+    <property name="Add_on_dir" value="${release_dir}/add-on" />
+    <property name="version" value="0.0.1" />
+
+    <import file="${beast2path}/build.xml" />
+
+    <property name="main_class_BEAST" value="beast.app.BeastMCMC" />
+    <property name="report" value="${buildNormalConjugate}/junitreport"/>
+
+    <path id="classpath">
+        <pathelement path="${buildNormalConjugate}"/>
+        <fileset dir="${libBeast2}" includes="commons-math3-3.1.1.jar"/>
+        <fileset dir="${libBeast2}" includes="antlr-runtime-4.7.jar"/>
+        <fileset dir="${libBeast2}" includes="junit-4.8.2.jar"/>
+        <fileset dir="${libBeast2}" includes="fest.jar"/>
+        <fileset dir="${libBeast2}" includes="beagle.jar"/>
+        <fileset dir="${libBeast2}" includes="jam.jar"/>
+        <fileset dir="${libBeast2}" includes="colt.jar"/>
+        <pathelement path="${beast2classpath}"/>
+    </path>
+
+    <!-- start -->
+    <target name="initNormalConjugate">
+        <echo message="${ant.project.name}: ${ant.file}" />
+    </target>
+
+    <target name="cleanNormalConjugate">
+        <delete dir="${buildNormalConjugate}" />
+    </target>
+
+    <!-- clean previous build, and then compile Java source code, and Juint test -->
+    <target name="build_all_NormalConjugate" depends="cleanNormalConjugate,compile-allNormalConjugate,junitNormalConjugate"
+            description="Clean and Build all run-time stuff">
+    </target>
+
+    <!-- clean previous build, compile Java source code, and Junit test, and make the beast.jar and beauti.jar -->
+    <target name="build_jar_all_NormalConjugate" depends="cleanNormalConjugate,compile-allNormalConjugate,junitNormalConjugate,dist_all_NormalConjugate"
+            description="Clean and Build all run-time stuff">
+    </target>
+
+
+    <!-- No JUnit Test, clean previous build, compile Java source code, and make the NormalConjugate.jar and beauti.jar -->
+    <target name="build_jar_all_NormalConjugate_NoJUnitTest" depends="cleanNormalConjugate,compile-allNormalConjugate,dist_all_NormalConjugate"
+            description="Clean and Build all run-time stuff">
+    </target>
+
+    <!-- compile Java source code -->
+    <target name="compile-allNormalConjugate" depends="initNormalConjugate,compile-all">
+
+
+        <!-- Capture the path as a delimited property using the refid attribute -->
+        <property name="myclasspath" refid="classpath"/>
+        <!-- Emit the property to the ant console -->
+        <echo message="Classpath = ${myclasspath}"/>
+
+        <mkdir dir="${buildNormalConjugate}" />
+
+        <!-- Compile the java code from ${srcNormalConjugate} into ${buildNormalConjugate} /bin -->
+        <javac srcdir="${srcNormalConjugate}" destdir="${buildNormalConjugate}" classpathref="classpath"
+               fork="true"
+               source="1.8"
+               target="1.8"
+               memoryinitialsize="256m"
+               memorymaximumsize="256m"
+        >
+            <include name="beast/**/**" />
+            <!-- compile JUnit test classes -->
+            <include name="test/beast/**" />
+        </javac>
+        <echo message="Successfully compiled." />
+    </target>
+
+    <!-- make the beast.jar and beauti.jar -->
+    <target name="dist_all_NormalConjugate" depends="compile-allNormalConjugate" description="create NormalConjugate jar">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${distNormalConjugate}" />
+
+        <!-- Put everything in ${buildNormalConjugate} into the beast.jar file -->
+        <jar jarfile="${distNormalConjugate}/NormalConjugate.jar">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}" />
+                <attribute name="Main-Class" value="${main_class_BEAST}" />
+            </manifest>
+            <fileset dir="${buildNormalConjugate}">
+                <include name="**/*.class" />
+            </fileset>
+            <fileset dir="${beast2classpath}">
+                <include name="**/*.class" />
+                <include name="**/*.properties" />
+                <include name="**/*.png" />
+                <include name="**/*.class" />
+                <include name="**/*.class" />
+            </fileset>
+        </jar>
+        <jar jarfile="${distNormalConjugate}/NormalConjugate.src.jar">
+            <fileset dir="${srcNormalConjugate}">
+                <include name="**/*.java" />
+                <include name="**/*.png" />
+                <include name="**/*.xsl" />
+            </fileset>
+        </jar>
+        <jar jarfile="${distNormalConjugate}/NormalConjugate.addon.jar">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}" />
+            </manifest>
+            <fileset dir="${buildNormalConjugate}">
+                <include name="**/*.class" />
+                <include name="**/*.class" />
+                <include name="**/*.properties" />
+            </fileset>
+        </jar>
+    </target>
+
+    <!-- run beast.jar -->
+    <target name="run_NormalConjugate">
+        <java jar="${distNormalConjugate}/NormalConjugate.jar" fork="true" />
+    </target>
+
+
+    <!-- JUnit test -->
+    <target name="junitNormalConjugate">
+        <mkdir dir="${report}" />
+        <junit printsummary="yes"> <!--showoutput='yes'-->
+            <classpath>
+                <path refid="classpath" />
+                <path location="${buildNormalConjugate}" />
+            </classpath>
+
+            <formatter type="xml" />
+
+            <batchtest fork="yes" todir="${report}">
+                <fileset dir="${srcNormalConjugate}">
+                    <include name="test/**/*Test.java"/>
+                </fileset>
+                <fileset dir="${srcBeast2}">
+                    <include name="test/beast/integration/**/*Test.java"/>
+                    <exclude name="test/beast/integration/**/ResumeTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <echo message="JUnit test finished." />
+    </target>
+
+    <target name="junitreport">
+        <junitreport todir="${report}">
+            <fileset dir="${report}" includes="*.xml"/>
+            <report format="frames" todir="${report}"/>
+        </junitreport>
+        <echo message="JUnit test report finished." />
+    </target>
+
+
+    <target name="addon"
+            depends="build_jar_all_NormalConjugate_NoJUnitTest"
+            description="release BEAST 2 add-on version of NormalConjugate">
+
+        <delete dir="${Add_on_dir}" />
+        <!-- Create the release directory -->
+        <mkdir dir="${Add_on_dir}" />
+        <mkdir dir="${Add_on_dir}/lib" />
+        <mkdir dir="${Add_on_dir}/examples" />
+        <mkdir dir="${Add_on_dir}/templates" />
+
+        <copy todir="${Add_on_dir}">
+            <fileset file="version.xml"/>
+        </copy>
+        <!--
+        <copy todir="${Add_on_dir}/examples">
+            <fileset dir="examples" />
+        </copy>
+        -->
+        <copy todir="${Add_on_dir}/lib">
+            <fileset dir="${distNormalConjugate}" includes="NormalConjugate.addon.jar" />
+        </copy>
+        <copy todir="${Add_on_dir}">
+            <fileset dir="${distNormalConjugate}" includes="NormalConjugate.src.jar" />
+        </copy>
+        <!--
+        <copy todir="${Add_on_dir}/templates">
+            <fileset file="templates/methods.csv" />
+        </copy>
+        -->
+
+        <jar jarfile="${distNormalConjugate}/NormalConjugate.addon.v${version}.zip">
+            <fileset dir="${Add_on_dir}">
+                <include name="**/*" />
+            </fileset>
+        </jar>
+        <echo message="Add-on version v${version} release is finished." />
+    </target>
+
+</project>

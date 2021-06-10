@@ -1,0 +1,11 @@
+# IntelliJ ignores
+/.idea
+/normal-conjugate.iml
+/META-INF
+/out
+
+# Eclipse ignores
+/.classpath
+
+# OS X ignores
+.DS_Store
